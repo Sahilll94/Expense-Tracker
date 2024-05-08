@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
 import ast
+import subprocess
+import sqlite3
+
 
 window = Tk()
 window.title("SignUp")
@@ -8,6 +11,8 @@ window.geometry('925x500+300+200')
 window.configure(bg='#fff')
 window.resizable(False, False)
 
+
+'''
 def signup():
     username = user.get()
     password = code.get()
@@ -37,9 +42,48 @@ def signup():
 
     else:
         messagebox.showerror('Invalid', 'Both passwords should match')
+'''
+
+def signup():
+    username = user.get()
+    password = code.get()
+    confirm_password = confirm_code.get()
+
+    if password == confirm_password:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+
+        # Create users table if it doesn't exist
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                password TEXT
+            )
+        """)
+
+        # Check if username already exists
+        c.execute("SELECT * FROM users WHERE username=?", (username,))
+        result = c.fetchone()
+        if result:
+            messagebox.showinfo('Sign Up', 'Username already exists')
+            return False
+
+        # Insert new user
+        c.execute("INSERT INTO users VALUES (?,?)", (username, password))
+
+        # Save (commit) the changes
+        conn.commit()
+
+        # Close the connection
+        conn.close()
+
+        messagebox.showinfo('Sign Up', 'Successfully Signed Up')
+    else:
+        messagebox.showerror('Invalid', 'Both passwords should match')
 
 def sign():
     window.destroy()
+    subprocess.Popen(["python", "Sign In program.py"])
 
 img = PhotoImage(file='Track Finance Sign Up Logo.png')
 Label(window, image=img, border=0, bg='white').place(x=50, y=90)

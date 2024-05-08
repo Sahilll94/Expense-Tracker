@@ -3,6 +3,7 @@ from tkinter import messagebox
 import ast
 import os
 import subprocess
+import sqlite3
 
 
 root = Tk()
@@ -11,7 +12,7 @@ root.geometry('925x500+300+200')
 root.configure(bg="#fff")
 root.resizable(False, False)
 
-
+'''
 def signin():
     username=user.get()
     password=code.get()
@@ -33,7 +34,30 @@ def signin():
         
     else:
         messagebox.showerror('Invalid','Invalid Username or Password')
+'''
 
+def signin():
+    username = user.get()
+    password = code.get()
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+
+    # Check if username exists and password matches
+    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+    result = c.fetchone()
+
+    if result:
+        root.destroy()
+
+        # Open main.py using subprocess and pass username as command-line argument
+        subprocess.Popen(['python', 'main.py', username])
+
+    else:
+        messagebox.showerror('Invalid', 'Invalid username or password')
+
+    conn.close()
+        
 
 def signup_command():
     completed_process = subprocess.run(['python', "Sign Up program.py"], capture_output=True, text=True)
